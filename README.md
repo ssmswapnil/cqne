@@ -17,7 +17,7 @@ Distributed quantum network emulator that runs entanglement, teleportation, and 
 
 ---
 
-## ✨ Why CQNE?
+##  Why CQNE?
 
 Most quantum network simulators are monolithic — they run everything in one process and fake the networking. CQNE is different:
 
@@ -198,7 +198,7 @@ python run_nodes.py
 
 ---
 
-## 🖥 Dashboard
+##  Dashboard
 
 The dashboard provides full control over the quantum network:
 
@@ -391,7 +391,7 @@ cqne/
 
 ---
 
-## 🛠 Tech Stack
+##  Tech Stack
 
 | Component | Technology |
 |-----------|-----------|
