@@ -1,0 +1,36 @@
+name: "Noise comparison"
+description: >
+  Compare entanglement fidelity under three noise levels:
+  perfect, low noise, and high noise. Creates 5 Bell pairs
+  at each level and records the fidelity.
+
+steps:
+  # ── Perfect (no noise) ──
+  - action: reset
+  - action: set_noise
+    gate_error: 0.0
+    dephasing: 0.0
+  - action: entangle
+    node_a: node_a
+    node_b: node_b
+    repeat: 5
+
+  # ── Low noise ──
+  - action: reset
+  - action: set_noise
+    gate_error: 0.05
+    dephasing: 0.02
+  - action: entangle
+    node_a: node_a
+    node_b: node_b
+    repeat: 5
+
+  # ── High noise ──
+  - action: reset
+  - action: set_noise
+    gate_error: 0.15
+    dephasing: 0.10
+  - action: entangle
+    node_a: node_a
+    node_b: node_b
+    repeat: 5

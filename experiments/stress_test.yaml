@@ -1,0 +1,42 @@
+name: "Full network stress test"
+description: >
+  Comprehensive test: GHZ states, entanglement, teleportation
+  across all node pairs with medium noise.
+
+steps:
+  - action: reset
+  - action: set_noise
+    gate_error: 0.03
+    dephasing: 0.01
+  - action: set_decoherence
+    rate: 0.02
+
+  # Entangle all pairs
+  - action: entangle
+    node_a: node_a
+    node_b: node_b
+  - action: entangle
+    node_a: node_b
+    node_b: node_c
+  - action: entangle
+    node_a: node_a
+    node_b: node_c
+
+  # GHZ across all 3
+  - action: reset
+  - action: ghz
+    nodes: [node_a, node_b, node_c]
+
+  # Teleportation between all pairs
+  - action: reset
+  - action: teleport
+    source: node_a
+    target: node_b
+  - action: reset
+  - action: teleport
+    source: node_b
+    target: node_c
+  - action: reset
+  - action: teleport
+    source: node_a
+    target: node_c

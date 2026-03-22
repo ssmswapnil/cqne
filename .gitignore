@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# SQLite database (regenerated on first run)
+*.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Word temp files
+~$*
+
+# Byte-compiled
+*.pyc
+*.pyo
+
+# Logs
+*.log
+
+# Temp files
+*.tmp
+*.bak

@@ -1,0 +1,31 @@
+name: "Routed teleportation test"
+description: >
+  Set up linear topology A-B-C and teleport from A to C
+  through B using entanglement swapping. Tests both
+  direct and routed teleportation.
+
+steps:
+  - action: reset
+  - action: set_noise
+    gate_error: 0.0
+    dephasing: 0.0
+
+  # Direct teleport (full mesh)
+  - action: teleport
+    source: node_a
+    target: node_b
+    repeat: 3
+
+  # Switch to linear topology
+  - action: reset
+  - action: set_topology
+    adjacency:
+      node_a: [node_b]
+      node_b: [node_a, node_c]
+      node_c: [node_b]
+
+  # Routed teleport A→B→C
+  - action: teleport
+    source: node_a
+    target: node_c
+    repeat: 3

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CQNE Dashboard</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #0a0e1a; color: #e0e0e0; min-height: 100vh; }
+
+  .header { background: linear-gradient(135deg, #1a1f35 0%, #0d1117 100%); border-bottom: 1px solid #2a2f45; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; }
+  .header h1 { font-size: 20px; font-weight: 600; color: #fff; }
+  .header h1 span { color: #7c6ef0; }
+  .header .status { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #8b8fa3; }
+  .header .dot { width: 8px; height: 8px; border-radius: 50%; background: #2ecc71; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 20px; max-width: 1200px; margin: 0 auto; }
+  .grid-full { grid-column: 1 / -1; }
+
+  .card { background: #12162a; border: 1px solid #1e2340; border-radius: 12px; padding: 20px; }
+  .card h2 { font-size: 14px; font-weight: 600; color: #8b8fa3; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+
+  /* Topology */
+  .topo-canvas { width: 100%; height: 280px; position: relative; }
+  .topo-canvas svg { width: 100%; height: 100%; }
+  .node-circle { cursor: pointer; transition: all 0.3s; }
+  .node-circle:hover { filter: brightness(1.3); }
+  .node-label { font-size: 12px; fill: #fff; text-anchor: middle; font-weight: 600; pointer-events: none; }
+  .node-sublabel { font-size: 10px; fill: #8b8fa3; text-anchor: middle; pointer-events: none; }
+  .ent-line { stroke-dasharray: 6 4; animation: dash 1.5s linear infinite; }
+  @keyframes dash { to { stroke-dashoffset: -20; } }
+
+  /* Node cards */
+  .nodes-grid { display: flex; gap: 12px; flex-wrap: wrap; }
+  .node-card { background: #1a1f35; border: 1px solid #2a2f45; border-radius: 8px; padding: 12px 16px; flex: 1; min-width: 140px; }
+  .node-card.online { border-left: 3px solid #2ecc71; }
+  .node-card.offline { border-left: 3px solid #e74c3c; opacity: 0.6; }
+  .node-card .name { font-weight: 600; font-size: 14px; color: #fff; }
+  .node-card .url { font-size: 11px; color: #5a5f73; margin-top: 2px; }
+  .node-card .badge { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 10px; margin-top: 6px; font-weight: 600; }
+  .node-card .badge.on { background: rgba(46,204,113,0.15); color: #2ecc71; }
+  .node-card .badge.off { background: rgba(231,76,60,0.15); color: #e74c3c; }
+
+  /* Experiment panel */
+  .exp-buttons { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  .exp-btn { background: #1e2340; border: 1px solid #2a2f45; color: #c0c4d6; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s; }
+  .exp-btn:hover { background: #7c6ef0; color: #fff; border-color: #7c6ef0; }
+  .exp-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .exp-btn.running { background: #7c6ef0; color: #fff; animation: pulse 1s infinite; }
+
+  /* Results log */
+  .results-log { max-height: 300px; overflow-y: auto; font-family: 'Consolas', 'Fira Code', monospace; font-size: 12px; line-height: 1.6; }
+  .results-log::-webkit-scrollbar { width: 6px; }
+  .results-log::-webkit-scrollbar-thumb { background: #2a2f45; border-radius: 3px; }
+  .log-entry { padding: 8px 12px; border-bottom: 1px solid #1a1f35; }
+  .log-entry:last-child { border-bottom: none; }
+  .log-entry .type { display: inline-block; width: 80px; font-weight: 600; }
+  .log-entry .type.entangle { color: #2ecc71; }
+  .log-entry .type.teleport { color: #7c6ef0; }
+  .log-entry .type.ghz { color: #f39c12; }
+  .log-entry .time { color: #5a5f73; font-size: 11px; }
+  .log-entry .detail { color: #8b8fa3; }
+
+  /* Statevector display */
+  .sv-display { font-family: 'Consolas', monospace; font-size: 13px; background: #0d1117; border-radius: 8px; padding: 12px; max-height: 120px; overflow-y: auto; }
+  .sv-display .amp { color: #7c6ef0; }
+  .sv-display .basis { color: #2ecc71; }
+  .sv-display .zero { color: #3a3f53; }
+
+  /* Stats bar */
+  .stats-row { display: flex; gap: 16px; }
+  .stat-box { flex: 1; text-align: center; background: #1a1f35; border-radius: 8px; padding: 14px; }
+  .stat-box .num { font-size: 28px; font-weight: 700; color: #fff; }
+  .stat-box .label { font-size: 11px; color: #5a5f73; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+  .stat-box.purple .num { color: #7c6ef0; }
+  .stat-box.green .num { color: #2ecc71; }
+  .stat-box.amber .num { color: #f39c12; }
+  .stat-box.red .num { color: #e74c3c; }
+
+  .empty-msg { color: #3a3f53; text-align: center; padding: 24px; font-style: italic; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1><span>CQNE</span> Dashboard</h1>
+  <div class="status">
+    <div class="dot" id="status-dot"></div>
+    <span id="status-text">Connecting...</span>
+  </div>
+</div>
+
+<div class="grid">
+
+  <!-- Stats -->
+  <div class="card grid-full">
+    <div class="stats-row">
+      <div class="stat-box green"><div class="num" id="stat-nodes">0</div><div class="label">Nodes Online</div></div>
+      <div class="stat-box purple"><div class="num" id="stat-qubits">0</div><div class="label">Qubits</div></div>
+      <div class="stat-box amber"><div class="num" id="stat-experiments">0</div><div class="label">Experiments</div></div>
+      <div class="stat-box green"><div class="num" id="stat-success">0</div><div class="label">Success</div></div>
+    </div>
+  </div>
+
+  <!-- Topology -->
+  <div class="card">
+    <h2>Network Topology</h2>
+    <div class="topo-canvas">
+      <svg id="topo-svg" viewBox="0 0 400 280"></svg>
+    </div>
+  </div>
+
+  <!-- Nodes -->
+  <div class="card">
+    <h2>Node Status</h2>
+    <div class="nodes-grid" id="nodes-grid"></div>
+  </div>
+
+  <!-- Run Experiments -->
+  <div class="card">
+    <h2>Run Experiments</h2>
+    <div class="exp-buttons">
+      <button class="exp-btn" onclick="runEntangle()">Entangle A↔B</button>
+      <button class="exp-btn" onclick="runTeleport()">Teleport A→B</button>
+      <button class="exp-btn" onclick="runGHZ()">GHZ (3-node)</button>
+      <button class="exp-btn" onclick="resetState()" style="margin-left:auto; color:#e74c3c; border-color:#3a1515;">Reset State</button>
+    </div>
+    <h2>Statevector</h2>
+    <div class="sv-display" id="sv-display">
+      <span class="zero">No qubits allocated</span>
+    </div>
+  </div>
+
+  <!-- Results Log -->
+  <div class="card">
+    <h2>Experiment Log</h2>
+    <div class="results-log" id="results-log">
+      <div class="empty-msg">No experiments yet — run one above</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API = '';  // same origin
+
+// ── State ────────────────────────────────────────────────────────────────
+let nodes = [];
+let links = [];
+let experiments = [];
+
+// ── API calls ────────────────────────────────────────────────────────────
+async function api(method, path, body) {
+  try {
+    const opts = { method, headers: { 'Content-Type': 'application/json' } };
+    if (body) opts.body = JSON.stringify(body);
+    const r = await fetch(API + path, opts);
+    return await r.json();
+  } catch (e) {
+    console.error('API error:', e);
+    return null;
+  }
+}
+
+// ── Polling ──────────────────────────────────────────────────────────────
+async function poll() {
+  // Health
+  const health = await api('GET', '/health');
+  if (health) {
+    document.getElementById('status-dot').style.background = '#2ecc71';
+    document.getElementById('status-text').textContent = `Online — ${health.nodes_online} nodes`;
+  } else {
+    document.getElementById('status-dot').style.background = '#e74c3c';
+    document.getElementById('status-text').textContent = 'Disconnected';
+    return;
+  }
+
+  // Network status
+  const net = await api('GET', '/network/status');
+  if (net) {
+    nodes = net.topology.nodes;
+    links = net.links;
+    document.getElementById('stat-nodes').textContent = net.topology.online_count;
+    document.getElementById('stat-qubits').textContent = net.qubit_count;
+    renderNodes();
+    renderTopology();
+  }
+
+  // Results
+  const summary = await api('GET', '/experiment/summary');
+  if (summary) {
+    document.getElementById('stat-experiments').textContent = summary.total;
+    document.getElementById('stat-success').textContent = summary.success;
+  }
+
+  const results = await api('GET', '/experiment/results');
+  if (results && results.experiments) {
+    experiments = results.experiments;
+    renderLog();
+  }
+
+  // Statevector
+  const sv = await api('GET', '/quantum/statevector');
+  if (sv) renderStatevector(sv);
+}
+
+// ── Render: Nodes ────────────────────────────────────────────────────────
+function renderNodes() {
+  const el = document.getElementById('nodes-grid');
+  if (!nodes.length) { el.innerHTML = '<div class="empty-msg">No nodes registered</div>'; return; }
+  el.innerHTML = nodes.map(n => `
+    <div class="node-card ${n.online ? 'online' : 'offline'}">
+      <div class="name">${n.node_id}</div>
+      <div class="url">${n.url}</div>
+      <div class="badge ${n.online ? 'on' : 'off'}">${n.online ? 'ONLINE' : 'OFFLINE'}</div>
+    </div>
+  `).join('');
+}
+
+// ── Render: Topology ─────────────────────────────────────────────────────
+function renderTopology() {
+  const svg = document.getElementById('topo-svg');
+  // Layout nodes in a triangle with control server in center
+  const positions = {
+    node_a: { x: 100, y: 220 },
+    node_b: { x: 300, y: 220 },
+    node_c: { x: 200, y: 60 },
+  };
+  const controlPos = { x: 200, y: 150 };
+
+  let html = '';
+
+  // Lines from control server to each node
+  nodes.forEach(n => {
+    const p = positions[n.node_id];
+    if (!p) return;
+    const color = n.online ? '#2a2f45' : '#1a1a2a';
+    html += `<line x1="${controlPos.x}" y1="${controlPos.y}" x2="${p.x}" y2="${p.y}" stroke="${color}" stroke-width="1.5"/>`;
+  });
+
+  // Entanglement links
+  links.forEach(link => {
+    const pa = positions[link.node_a];
+    const pb = positions[link.node_b];
+    if (pa && pb) {
+      html += `<line x1="${pa.x}" y1="${pa.y}" x2="${pb.x}" y2="${pb.y}" stroke="#7c6ef0" stroke-width="2" class="ent-line"/>`;
+    }
+  });
+
+  // Control server
+  html += `<circle cx="${controlPos.x}" cy="${controlPos.y}" r="22" fill="#1a1f35" stroke="#7c6ef0" stroke-width="2"/>`;
+  html += `<text x="${controlPos.x}" y="${controlPos.y + 1}" class="node-label" font-size="9">CTRL</text>`;
+  html += `<text x="${controlPos.x}" y="${controlPos.y + 38}" class="node-sublabel">Control Server</text>`;
+
+  // Nodes
+  nodes.forEach(n => {
+    const p = positions[n.node_id];
+    if (!p) return;
+    const fill = n.online ? '#2ecc71' : '#e74c3c';
+    const label = n.node_id.replace('node_', '').toUpperCase();
+    html += `<circle class="node-circle" cx="${p.x}" cy="${p.y}" r="24" fill="${n.online ? '#12162a' : '#1a1a2a'}" stroke="${fill}" stroke-width="2.5"/>`;
+    html += `<text x="${p.x}" y="${p.y + 1}" class="node-label">${label}</text>`;
+    html += `<text x="${p.x}" y="${p.y - 34}" class="node-sublabel">${n.node_id}</text>`;
+  });
+
+  svg.innerHTML = html;
+}
+
+// ── Render: Statevector ──────────────────────────────────────────────────
+function renderStatevector(sv) {
+  const el = document.getElementById('sv-display');
+  if (!sv.statevector || sv.statevector.length === 0) {
+    el.innerHTML = '<span class="zero">No qubits allocated</span>';
+    return;
+  }
+  const n = sv.qubit_count;
+  const amps = sv.statevector;
+  let html = `<div style="margin-bottom:6px;color:#5a5f73">${n} qubits — ${amps.length} amplitudes</div>`;
+  amps.forEach((a, i) => {
+    const mag = Math.sqrt(a.re * a.re + a.im * a.im);
+    const basis = i.toString(2).padStart(n, '0');
+    if (mag > 0.001) {
+      html += `<span class="amp">${a.re >= 0 ? '+' : ''}${a.re.toFixed(4)}</span> <span class="basis">|${basis}⟩</span>  `;
+    }
+  });
+  el.innerHTML = html;
+}
+
+// ── Render: Log ──────────────────────────────────────────────────────────
+function renderLog() {
+  const el = document.getElementById('results-log');
+  if (!experiments.length) { el.innerHTML = '<div class="empty-msg">No experiments yet</div>'; return; }
+
+  el.innerHTML = experiments.slice().reverse().map(e => {
+    let detail = '';
+    if (e.type === 'entangle') detail = `${e.source} ↔ ${e.target} | link: ${e.link_id}`;
+    else if (e.type === 'teleport') detail = `${e.source} → ${e.target} | m1=${e.m1} m2=${e.m2} → ${e.final_result}`;
+    else if (e.type === 'ghz') detail = `${(e.nodes||[]).join(', ')} | ${(e.qubits||[]).length}-qubit`;
+    const status = e.error ? '❌' : '✅';
+    return `<div class="log-entry">
+      <span class="type ${e.type}">${e.type}</span>
+      ${status} <span class="detail">${detail}</span>
+      <span class="time">${e.duration_ms}ms</span>
+    </div>`;
+  }).join('');
+}
+
+// ── Experiment actions ───────────────────────────────────────────────────
+async function runEntangle() {
+  await api('POST', '/experiment/entangle', { node_a_id: 'node_a', node_b_id: 'node_b' });
+  await poll();
+}
+
+async function runTeleport() {
+  await api('POST', '/experiment/teleport', { source_node_id: 'node_a', target_node_id: 'node_b', shots: 128 });
+  await poll();
+}
+
+async function runGHZ() {
+  await api('POST', '/experiment/ghz', { node_ids: ['node_a', 'node_b', 'node_c'] });
+  await poll();
+}
+
+async function resetState() {
+  await api('POST', '/quantum/reset');
+  await poll();
+}
+
+// ── Start ────────────────────────────────────────────────────────────────
+poll();
+setInterval(poll, 3000);
+</script>
+</body>
+</html>

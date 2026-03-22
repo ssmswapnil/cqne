@@ -1,0 +1,21 @@
+{
+  "_comment": "CQNE Redesigned — edit IPs to match your LAN. Copy to every machine.",
+
+  "control_server_url": "http://192.168.1.101:8500",
+  "router_url":         "http://192.168.1.100:9000",
+
+  "nodes": {
+    "node_a": "http://192.168.1.11:8000",
+    "node_b": "http://192.168.1.12:8000",
+    "node_c": "http://192.168.1.13:8000",
+    "node_d": "http://192.168.1.14:8000"
+  },
+
+  "_note": [
+    "In the redesigned architecture nodes hold NO quantum state.",
+    "All qubits live in the QuantumStateManager on the Control Server.",
+    "The control_server_url is what nodes use to register and send heartbeats.",
+    "The router_url is optional — used for path-finding if you add routing layers.",
+    "For local testing set all URLs to localhost with different ports."
+  ]
+}

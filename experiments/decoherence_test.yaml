@@ -1,0 +1,32 @@
+name: "Decoherence decay test"
+description: >
+  Create Bell pairs and wait for decoherence to degrade them.
+  Shows how fidelity drops over time with fast decoherence.
+
+steps:
+  - action: reset
+  - action: set_noise
+    gate_error: 0.0
+    dephasing: 0.0
+  - action: set_decoherence
+    rate: 0.1
+
+  # Create a pair
+  - action: entangle
+    node_a: node_a
+    node_b: node_b
+
+  # Wait and watch fidelity drop
+  - action: wait
+    seconds: 3
+
+  - action: entangle
+    node_a: node_a
+    node_b: node_c
+
+  - action: wait
+    seconds: 5
+
+  - action: entangle
+    node_b: node_b
+    node_a: node_c
