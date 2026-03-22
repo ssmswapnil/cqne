@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🔮 CQNE — Campus Quantum Network Emulator
+#  CQNE — Campus Quantum Network Emulator
 
 **Simulate a quantum internet on your laptop.**
 
@@ -27,7 +27,7 @@ Most quantum network simulators are monolithic — they run everything in one pr
 
 ---
 
-## 🏗 Architecture
+##  Architecture
 
 ```mermaid
 graph TB
@@ -116,7 +116,7 @@ sequenceDiagram
 
 ---
 
-## 🎯 Features
+##  Features
 
 ### Quantum Operations
 
@@ -155,7 +155,7 @@ sequenceDiagram
 
 ---
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### Prerequisites
 
@@ -221,7 +221,7 @@ The dashboard provides full control over the quantum network:
 
 ---
 
-## 📄 YAML Experiments
+##  YAML Experiments
 
 Write experiment sequences as YAML files and run them from the dashboard:
 
@@ -275,7 +275,7 @@ steps:
 
 ---
 
-## 📡 Multi-Machine Deployment
+##  Multi-Machine Deployment
 
 CQNE is designed to scale from one laptop to a physical network:
 
@@ -310,7 +310,7 @@ The code is the same — only IPs change.
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 cqne/
@@ -336,7 +336,7 @@ cqne/
 
 ---
 
-## 🔌 API Reference
+##  API Reference
 
 <details>
 <summary><b>Experiments</b></summary>
@@ -405,7 +405,7 @@ cqne/
 
 ---
 
-## 🗺 Roadmap
+##  Roadmap
 
 - [x] Global statevector (real entanglement)
 - [x] Quantum teleportation protocol
@@ -425,7 +425,7 @@ cqne/
 
 ---
 
-## 📜 License
+##  License
 
 MIT — use it, modify it, build on it.
 
